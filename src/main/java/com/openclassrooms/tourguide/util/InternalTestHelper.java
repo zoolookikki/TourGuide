@@ -1,4 +1,4 @@
-package com.openclassrooms.tourguide.helper;
+package com.openclassrooms.tourguide.util;
 
 // stocke dans une variable globale le nombre d’utilisateurs que l'application doit générer pour les tests.
 public class InternalTestHelper {
