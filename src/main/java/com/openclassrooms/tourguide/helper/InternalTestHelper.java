@@ -1,5 +1,6 @@
 package com.openclassrooms.tourguide.helper;
 
+// stocke dans une variable globale le nombre d’utilisateurs que l'application doit générer pour les tests.
 public class InternalTestHelper {
 
 	// Set this default up to 100,000 for testing

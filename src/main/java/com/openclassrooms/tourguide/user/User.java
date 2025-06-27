@@ -9,15 +9,23 @@ import gpsUtil.location.VisitedLocation;
 import tripPricer.Provider;
 
 public class User {
+    // identifiants de l’utilisateur. Immuables (final), définis à la création.
 	private final UUID userId;
 	private final String userName;
+	// coordonnées de l’utilisateur (modifiables).
 	private String phoneNumber;
 	private String emailAddress;
+	// date de la dernière mise à jour de la position de l'utilisateur.
 	private Date latestLocationTimestamp;
+	// liste de toutes les localisations visitées par l’utilisateur (historique GPS).
 	private List<VisitedLocation> visitedLocations = new ArrayList<>();
+	// liste des récompenses obtenues pour avoir visité des attractions.
 	private List<UserReward> userRewards = new ArrayList<>();
+	// préférences de voyage (nb de personnes, durée du séjour, etc.).
 	private UserPreferences userPreferences = new UserPreferences();
+	// offres de voyages proposées à l’utilisateur.
 	private List<Provider> tripDeals = new ArrayList<>();
+	
 	public User(UUID userId, String userName, String phoneNumber, String emailAddress) {
 		this.userId = userId;
 		this.userName = userName;
@@ -57,6 +65,7 @@ public class User {
 		return latestLocationTimestamp;
 	}
 	
+	// ajoute une localisation à l’historique de l’utilisateur.
 	public void addToVisitedLocations(VisitedLocation visitedLocation) {
 		visitedLocations.add(visitedLocation);
 	}
@@ -64,11 +73,13 @@ public class User {
 	public List<VisitedLocation> getVisitedLocations() {
 		return visitedLocations;
 	}
-	
+
+	// vide l’historique.
 	public void clearVisitedLocations() {
 		visitedLocations.clear();
 	}
 	
+	// ajoute une récompense seulement si elle n’existe pas déjà pour la même attraction.
 	public void addUserReward(UserReward userReward) {
 		if(userRewards.stream().filter(r -> !r.attraction.attractionName.equals(userReward.attraction)).count() == 0) {
 			userRewards.add(userReward);

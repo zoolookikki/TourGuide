@@ -33,70 +33,101 @@ import tripPricer.TripPricer;
 @Service
 public class TourGuideService {
 	private Logger logger = LoggerFactory.getLogger(TourGuideService.class);
+	
+	//  pour trouver la géolocalisation d'un utilisateur + la liste des attractions touristiques associées.
 	private final GpsUtil gpsUtil;
+	
+	// service qui calcule les récompenses.
 	private final RewardsService rewardsService;
+	
+	// pour générer des offres de voyage. 
 	private final TripPricer tripPricer = new TripPricer();
+	
+	// thread qui toutes les 5 minutes (scheduler), pour tous les utilisateurs enregistrés, met à jour de leur position GPS  et effectue le recalcul de leurs récompenses.
 	public final Tracker tracker;
+    
+	// pour créer des utilisateurs pour les tests.
 	boolean testMode = true;
 
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
 		this.gpsUtil = gpsUtil;
 		this.rewardsService = rewardsService;
 		
+		// Locale.US comme locale par défaut afin d’uniformiser les conversions nombre/chaîne (coordonnées GPS, distances)
 		Locale.setDefault(Locale.US);
 
+		// crée des utilisateurs “internalUserX”
 		if (testMode) {
 			logger.info("TestMode enabled");
 			logger.debug("Initializing users");
 			initializeInternalUsers();
 			logger.debug("Finished initializing users");
 		}
+		
+		// initialise et lance le scheduler 
 		tracker = new Tracker(this);
+
+		// ajoute un hook pour permettre au scheduler de s'arrêter correctement. 
 		addShutDownHook();
 	}
 
+	// retourne la liste des récompenses de l’utilisateur.
 	public List<UserReward> getUserRewards(User user) {
 		return user.getUserRewards();
 	}
 
+	// si l’utilisateur a déjà des positions, on renvoie la dernière sinon on en demande une.
 	public VisitedLocation getUserLocation(User user) {
 		VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ? user.getLastVisitedLocation()
 				: trackUserLocation(user);
 		return visitedLocation;
 	}
 
+	// récupère un utilisateur correspondant à son nom.	
 	public User getUser(String userName) {
 		return internalUserMap.get(userName);
 	}
 
+	// retourne la liste de tous les utilisateurs
 	public List<User> getAllUsers() {
 		return internalUserMap.values().stream().collect(Collectors.toList());
 	}
 
+	// ajoute un nouvel utilisateur si il n'existe pas.
 	public void addUser(User user) {
 		if (!internalUserMap.containsKey(user.getUserName())) {
 			internalUserMap.put(user.getUserName(), user);
 		}
 	}
 
+	// retourne les offres disponibles pour un utilisateur.
 	public List<Provider> getTripDeals(User user) {
+	    // calcule le total de points de récompense.
 		int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(i -> i.getRewardPoints()).sum();
+		// récupère les offres.
 		List<Provider> providers = tripPricer.getPrice(tripPricerApiKey, user.getUserId(),
 				user.getUserPreferences().getNumberOfAdults(), user.getUserPreferences().getNumberOfChildren(),
 				user.getUserPreferences().getTripDuration(), cumulatativeRewardPoints);
+		// stocke ces offres dans l’objet User.
 		user.setTripDeals(providers);
 		return providers;
 	}
 
+	// met à jour la position GPS courante de l’utilisateur, l’ajoute à son historique, déclenche le calcul de ses récompenses, et retourne la nouvelle position gps de l'utilisateur.
 	public VisitedLocation trackUserLocation(User user) {
+	    // appelle gpsUtil pour obtenir la position courante
 		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
+		// ajoute cette position dans l’historique de l’utilisateur.
 		user.addToVisitedLocations(visitedLocation);
+		// calcule les récompenses.
 		rewardsService.calculateRewards(user);
 		return visitedLocation;
 	}
 
+	// retourne la liste des attractions les plus proches.
 	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
 		List<Attraction> nearbyAttractions = new ArrayList<>();
+		// pour toutes les attractions connues, on met dans la liste celles les plus proches.
 		for (Attraction attraction : gpsUtil.getAttractions()) {
 			if (rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
 				nearbyAttractions.add(attraction);
@@ -106,6 +137,7 @@ public class TourGuideService {
 		return nearbyAttractions;
 	}
 
+	// permet au scheduler de s'arrêter correctement.
 	private void addShutDownHook() {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
@@ -124,12 +156,14 @@ public class TourGuideService {
 	// internal users are provided and stored in memory
 	private final Map<String, User> internalUserMap = new HashMap<>();
 
+	// création d'utilisateurs pour les tests.
 	private void initializeInternalUsers() {
 		IntStream.range(0, InternalTestHelper.getInternalUserNumber()).forEach(i -> {
 			String userName = "internalUser" + i;
 			String phone = "000";
 			String email = userName + "@tourGuide.com";
 			User user = new User(UUID.randomUUID(), userName, phone, email);
+			// génère des positions pour un utilisateur.
 			generateUserLocationHistory(user);
 
 			internalUserMap.put(userName, user);
@@ -137,6 +171,7 @@ public class TourGuideService {
 		logger.debug("Created " + InternalTestHelper.getInternalUserNumber() + " internal test users.");
 	}
 
+	// ajoute 3 positions aléatoires par utilisateur (latitude/longitude + date).
 	private void generateUserLocationHistory(User user) {
 		IntStream.range(0, 3).forEach(i -> {
 			user.addToVisitedLocations(new VisitedLocation(user.getUserId(),

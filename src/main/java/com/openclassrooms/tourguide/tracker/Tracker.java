@@ -12,9 +12,13 @@ import org.slf4j.LoggerFactory;
 import com.openclassrooms.tourguide.service.TourGuideService;
 import com.openclassrooms.tourguide.user.User;
 
+
+// thread qui toutes les 5 minutes (scheduler), pour tous les utilisateurs enregistrés, met à jour de leur position GPS  et effectue le recalcul de leurs récompenses.
 public class Tracker extends Thread {
 	private Logger logger = LoggerFactory.getLogger(Tracker.class);
 	private static final long trackingPollingInterval = TimeUnit.MINUTES.toSeconds(5);
+	
+	// création du thread
 	private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 	private final TourGuideService tourGuideService;
 	private boolean stop = false;
@@ -22,6 +26,7 @@ public class Tracker extends Thread {
 	public Tracker(TourGuideService tourGuideService) {
 		this.tourGuideService = tourGuideService;
 
+		// lance le thread.
 		executorService.submit(this);
 	}
 
@@ -30,11 +35,13 @@ public class Tracker extends Thread {
 	 */
 	public void stopTracking() {
 		stop = true;
+		// interrompt le thread si bloqué en sleep.
 		executorService.shutdownNow();
 	}
-
+	
 	@Override
 	public void run() {
+	    // chronomètre.
 		StopWatch stopWatch = new StopWatch();
 		while (true) {
 			if (Thread.currentThread().isInterrupted() || stop) {
@@ -45,6 +52,10 @@ public class Tracker extends Thread {
 			List<User> users = tourGuideService.getAllUsers();
 			logger.debug("Begin Tracker. Tracking " + users.size() + " users.");
 			stopWatch.start();
+			/*
+			 pour chaque utilisateur :
+		     met à jour la position GPS courante de l’utilisateur, l’ajoute à son historique, déclenche le calcul de ses récompenses, et retourne la nouvelle position gps de l'utilisateur.
+     		*/
 			users.forEach(u -> tourGuideService.trackUserLocation(u));
 			stopWatch.stop();
 			logger.debug("Tracker Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");

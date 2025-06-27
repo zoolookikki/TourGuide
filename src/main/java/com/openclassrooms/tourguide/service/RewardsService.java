@@ -12,15 +12,22 @@ import rewardCentral.RewardCentral;
 import com.openclassrooms.tourguide.user.User;
 import com.openclassrooms.tourguide.user.UserReward;
 
+// service permettant le calcul des récompenses en fonction des lieux visités et l'évaluation de la distance entre un utilisateur et une attraction.
 @Service
 public class RewardsService {
     private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
 
-	// proximity in miles
+    // petite distance par défaut en miles pour dire qu’une position est proche d’une attraction.
     private int defaultProximityBuffer = 10;
 	private int proximityBuffer = defaultProximityBuffer;
+
+	// + grande distance acceptable que la précédente par défaut en miles.
 	private int attractionProximityRange = 200;
+	
+    //  pour trouver la géolocalisation d'un utilisateur + la liste des attractions touristiques associées.
 	private final GpsUtil gpsUtil;
+	
+	// pour calculer les récompenses.
 	private final RewardCentral rewardsCentral;
 	
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
@@ -36,14 +43,22 @@ public class RewardsService {
 		proximityBuffer = defaultProximityBuffer;
 	}
 	
+	// calcule et attribue des récompenses à un utilisateur en fonction des lieux visités et de la proximité des attractions.
 	public void calculateRewards(User user) {
+	    // récupère l'historique des lieux visités par l'utilisateur.
 		List<VisitedLocation> userLocations = user.getVisitedLocations();
+		// récupère la liste des attractions.
 		List<Attraction> attractions = gpsUtil.getAttractions();
 		
+		// pour chaque lieu que l'utilisateur a visité.
 		for(VisitedLocation visitedLocation : userLocations) {
+		    // pour chaque attractions que l'on connait.
 			for(Attraction attraction : attractions) {
+			    // On vérifie que l'utilisateur n'a pas encore reçu de récompense pour cette attraction.
 				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
+				    // On vérifie si la position visitée est proche de l’attraction
 					if(nearAttraction(visitedLocation, attraction)) {
+					    // On calcule le nombre de points d'une récompense et on l’ajoute à la liste des récompenses de l’utilisateur.
 						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
 					}
 				}
@@ -51,18 +66,23 @@ public class RewardsService {
 		}
 	}
 	
+    // vérifie si le lieu visité et l'attraction est à proximité (rayon en miles petit).
+    private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
+        return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
+    }
+
+    // vérifie si l'attraction est proche de la localisation actuelle (rayon en miles + important que la précédente).
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		return getDistance(attraction, location) > attractionProximityRange ? false : true;
 	}
 	
-	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
-		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
-	}
 	
+	// calcule le nombre de points d'une récompense d'une attraction associée à un utilisateur.
 	private int getRewardPoints(Attraction attraction, User user) {
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
 	}
 	
+	// calcule la distance en miles entre deux positions.
 	public double getDistance(Location loc1, Location loc2) {
         double lat1 = Math.toRadians(loc1.latitude);
         double lon1 = Math.toRadians(loc1.longitude);

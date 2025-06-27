@@ -1,11 +1,20 @@
 package com.openclassrooms.tourguide.user;
 
+// stocke les préférences de voyage d’un utilisateur, utilisées pour trouver les offres adaptées.
 public class UserPreferences {
 	
+    /*
+     * distance maximale des attractions (en miles) considérée comme acceptable.
+     * initialisée à la valeur maximale d'un entier => pas de limite pas défaut.
+     */
 	private int attractionProximity = Integer.MAX_VALUE;
+	// durée souhaitée du voyage en ???
 	private int tripDuration = 1;
+	// nombre total de billets à acheter.
 	private int ticketQuantity = 1;
+	// nombre d’adultes participant au voyage.
 	private int numberOfAdults = 1;
+	// nombre d’enfants participant au voyage.
 	private int numberOfChildren = 0;
 	
 	public UserPreferences() {

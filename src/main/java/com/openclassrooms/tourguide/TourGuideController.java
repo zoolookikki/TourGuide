@@ -27,11 +27,13 @@ public class TourGuideController {
         return "Greetings from TourGuide!";
     }
     
+    // Retourne la dernière position géographique visitée par cet utilisateur.
     @RequestMapping("/getLocation") 
     public VisitedLocation getLocation(@RequestParam String userName) {
     	return tourGuideService.getUserLocation(getUser(userName));
     }
     
+    // récupère la position d'un utilisateur et retourne une liste d’attractions proches.
     //  TODO: Change this method to no longer return a List of Attractions.
  	//  Instead: Get the closest five tourist attractions to the user - no matter how far away they are.
  	//  Return a new JSON object that contains:
@@ -47,16 +49,19 @@ public class TourGuideController {
     	return tourGuideService.getNearByAttractions(visitedLocation);
     }
     
+    // récupère la liste des récompenses obtenues par l’utilisateur.
     @RequestMapping("/getRewards") 
     public List<UserReward> getRewards(@RequestParam String userName) {
     	return tourGuideService.getUserRewards(getUser(userName));
     }
-       
+    
+    // fournit les offres de voyage disponibles pour l’utilisateur.
     @RequestMapping("/getTripDeals")
     public List<Provider> getTripDeals(@RequestParam String userName) {
     	return tourGuideService.getTripDeals(getUser(userName));
     }
     
+    // pour retrouver un objet User à partir d’un nom d’utilisateur.
     private User getUser(String userName) {
     	return tourGuideService.getUser(userName);
     }
