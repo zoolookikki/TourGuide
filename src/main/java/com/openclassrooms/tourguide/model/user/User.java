@@ -81,9 +81,31 @@ public class User {
 	
 	// ajoute une récompense seulement si elle n’existe pas déjà pour la même attraction.
 	public void addUserReward(UserReward userReward) {
-		if(userRewards.stream().filter(r -> !r.attraction.attractionName.equals(userReward.attraction)).count() == 0) {
-			userRewards.add(userReward);
-		}
+	    /*
+        if(userRewards.stream().filter(r -> !r.attraction.attractionName.equals(userReward.attraction)).count() == 0) {
+            userRewards.add(userReward);
+        }
+	    warning : Unlikely argument type for equals(): Attraction seems to be unrelated to String.
+	    ATTENTION car il y a ici 2 problème en fait : 
+            - comparaison entre un nom attractionName et un objet attraction.
+            - test difficile à comprendre et faux ?
+              filter => ne garde que les récompenses dont les noms comparés sont différents => il faut faire le contraire.
+	    */
+
+	    boolean alreadyExist = false;
+
+	    // recherche si doublon.
+	    for (UserReward existingReward : userRewards) {
+	        if (existingReward.attraction.attractionName.equals(userReward.attraction.attractionName)) {
+	            alreadyExist = true; 
+	            break;                 
+	        }
+	    }
+
+	    // si pas de doublon, on l'ajoute.
+	    if (!alreadyExist) {
+	        userRewards.add(userReward); 
+	    }	    
 	}
 	
 	public List<UserReward> getUserRewards() {

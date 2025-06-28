@@ -24,8 +24,6 @@ import com.openclassrooms.tourguide.util.InternalTestHelper;
 // mémo : RewardsService ==> service permettant le calcul des récompenses en fonction des lieux visités et l'évaluation de la distance entre un utilisateur et une attraction.
 public class TestRewardsService {
 
- // idem pour celle là : public class TestRewardsService 
-    
 	@Test
 	// vérifie qu'un utilisateur reçoit une récompense lorsqu'il a visité un lieu. 
 	public void userGetRewards() {
