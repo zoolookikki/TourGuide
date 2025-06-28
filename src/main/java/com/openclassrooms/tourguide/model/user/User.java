@@ -5,8 +5,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import com.openclassrooms.tourguide.dto.UserPreferences;
-
 import gpsUtil.location.VisitedLocation;
 import tripPricer.Provider;
 
