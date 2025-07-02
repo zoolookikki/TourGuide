@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import gpsUtil.location.VisitedLocation;
+import lombok.extern.log4j.Log4j2;
 import tripPricer.Provider;
 
+@Log4j2
 public class User {
     // identifiants de l’utilisateur. Immuables (final), définis à la création.
 	private final UUID userId;
@@ -17,10 +20,22 @@ public class User {
 	private String emailAddress;
 	// date de la dernière mise à jour de la position de l'utilisateur.
 	private Date latestLocationTimestamp;
+
 	// liste de toutes les localisations visitées par l’utilisateur (historique GPS).
-	private List<VisitedLocation> visitedLocations = new ArrayList<>();
+	// correction ConcurrentModificationException.
+//	private List<VisitedLocation> visitedLocations = new ArrayList<>();
+    private List<VisitedLocation> visitedLocations = new CopyOnWriteArrayList<>();
+	
 	// liste des récompenses obtenues pour avoir visité des attractions.
-	private List<UserReward> userRewards = new ArrayList<>();
+    /* 
+    correction également sur accès concurrent probable (ConcurrentModificationException) car non testé mais trouvé suite à vérification de toutes les autres listes :
+    Tracker et TourGuideController endpoint /getRewards.
+    Tracker => tourGuideService.trackUserLocation => rewardsService.calculateRewards(user) => user.addUserReward => userRewards.add
+    TourGuideController Endpoint / getRewards => getUserRewards(getUser(userName)) => user.getUserRewards() => return : itération par Spring pour générer le fichier json.
+    */
+//    private List<UserReward> userRewards = new ArrayList<>();
+	private List<UserReward> userRewards = new CopyOnWriteArrayList<>();
+	
 	// préférences de voyage (nb de personnes, durée du séjour, etc.).
 	private UserPreferences userPreferences = new UserPreferences();
 	// offres de voyages proposées à l’utilisateur.
@@ -67,7 +82,9 @@ public class User {
 	
 	// ajoute une localisation à l’historique de l’utilisateur.
 	public void addToVisitedLocations(VisitedLocation visitedLocation) {
+        log.debug("before visitedLocations.add(visitedLocation)");
 		visitedLocations.add(visitedLocation);
+        log.debug("after visitedLocations.add(visitedLocation)");
 	}
 	
 	public List<VisitedLocation> getVisitedLocations() {
