@@ -12,10 +12,11 @@ import org.slf4j.LoggerFactory;
 import com.openclassrooms.tourguide.model.user.User;
 import com.openclassrooms.tourguide.service.TourGuideService;
 
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 // thread qui toutes les 5 minutes (scheduler), pour tous les utilisateurs enregistrés, met à jour de leur position GPS  et effectue le recalcul de leurs récompenses.
 public class Tracker extends Thread {
-	private Logger logger = LoggerFactory.getLogger(Tracker.class);
 	private static final long trackingPollingInterval = TimeUnit.MINUTES.toSeconds(5);
 	
 	// création du thread
@@ -45,12 +46,13 @@ public class Tracker extends Thread {
 		StopWatch stopWatch = new StopWatch();
 		while (true) {
 			if (Thread.currentThread().isInterrupted() || stop) {
-				logger.debug("Tracker stopping");
+				log.debug("Tracker stopping");
 				break;
 			}
 
 			List<User> users = tourGuideService.getAllUsers();
-			logger.debug("Begin Tracker. Tracking " + users.size() + " users.");
+			log.debug("Begin Tracker. Tracking " + users.size() + " users.");
+	        log.debug("......................DEBUT SCHEDULER......................");
 			stopWatch.start();
 			/*
 			 pour chaque utilisateur :
@@ -58,10 +60,11 @@ public class Tracker extends Thread {
      		*/
 			users.forEach(u -> tourGuideService.trackUserLocation(u));
 			stopWatch.stop();
-			logger.debug("Tracker Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
+			log.debug("Tracker Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
 			stopWatch.reset();
+            log.debug("......................FIN SCHEDULER......................");
 			try {
-				logger.debug("Tracker sleeping");
+				log.debug("Tracker sleeping");
 				TimeUnit.SECONDS.sleep(trackingPollingInterval);
 			} catch (InterruptedException e) {
 				break;

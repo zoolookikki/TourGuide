@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
+import lombok.extern.log4j.Log4j2;
 import rewardCentral.RewardCentral;
 
 import com.openclassrooms.tourguide.model.user.User;
@@ -21,12 +22,14 @@ import com.openclassrooms.tourguide.service.RewardsService;
 import com.openclassrooms.tourguide.service.TourGuideService;
 import com.openclassrooms.tourguide.util.InternalTestHelper;
 
+@Log4j2
 // mémo : RewardsService ==> service permettant le calcul des récompenses en fonction des lieux visités et l'évaluation de la distance entre un utilisateur et une attraction.
 public class TestRewardsService {
 
 	@Test
 	// vérifie qu'un utilisateur reçoit une récompense lorsqu'il a visité un lieu. 
 	public void userGetRewards() {
+        log.debug("......................DEBUT TEST OK userGetRewards......................");
 	    // given
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
@@ -43,11 +46,13 @@ public class TestRewardsService {
 		
 		// then
 		assertTrue(userRewards.size() == 1);
+        log.debug("......................FIN TEST OK userGetRewards......................");
 	}
 
 	@Test
 	// vérifie que c'est vrai si on lui passe la même attraction deux fois (distance 0).
 	public void isWithinAttractionProximity() {
+        log.debug("......................DEBUT TEST OK isWithinAttractionProximity......................");
 	    // given
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
@@ -56,6 +61,7 @@ public class TestRewardsService {
 		// when then
        // vérifie si l'attraction est proche de la localisation actuelle
 		assertTrue(rewardsService.isWithinAttractionProximity(attraction, attraction));
+        log.debug("......................DEBUT TEST FIN isWithinAttractionProximity......................");
 	}
 
 	
@@ -63,6 +69,8 @@ public class TestRewardsService {
 	@Test
 	// Avec une proximité règlée au maximum, vérifie que toutes les attractions génèrent une récompense.
 	public void nearAllAttractions() {
+        log.debug("......................DEBUT TEST HS nearAllAttractions......................");
+	    
 	    // given
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
@@ -82,6 +90,7 @@ public class TestRewardsService {
 		// then
 		// il y a autant d'attractions que de récompenses (cqfd).
 		assertEquals(gpsUtil.getAttractions().size(), userRewards.size());
+        log.debug("......................FIN TEST HS nearAllAttractions......................");
 	}
 
 }

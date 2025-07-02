@@ -26,10 +26,11 @@ import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
-
+import lombok.extern.log4j.Log4j2;
 import tripPricer.Provider;
 import tripPricer.TripPricer;
 
+@Log4j2
 @Service
 public class TourGuideService {
 	private Logger logger = LoggerFactory.getLogger(TourGuideService.class);
@@ -115,12 +116,14 @@ public class TourGuideService {
 
 	// met à jour la position GPS courante de l’utilisateur, l’ajoute à son historique, déclenche le calcul de ses récompenses, et retourne la nouvelle position gps de l'utilisateur.
 	public VisitedLocation trackUserLocation(User user) {
+        log.debug("......................DEBUT trackUserLocation ......................"+user.getUserName());
 	    // appelle gpsUtil pour obtenir la position courante
 		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
 		// ajoute cette position dans l’historique de l’utilisateur.
 		user.addToVisitedLocations(visitedLocation);
 		// calcule les récompenses.
 		rewardsService.calculateRewards(user);
+        log.debug("......................FIN trackUserLocation ......................"+user.getUserName());
 		return visitedLocation;
 	}
 
