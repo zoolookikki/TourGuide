@@ -18,8 +18,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import gpsUtil.GpsUtil;
@@ -33,7 +31,6 @@ import tripPricer.TripPricer;
 @Log4j2
 @Service
 public class TourGuideService {
-	private Logger logger = LoggerFactory.getLogger(TourGuideService.class);
 	
 	//  pour trouver la géolocalisation d'un utilisateur + la liste des attractions touristiques associées.
 	private final GpsUtil gpsUtil;
@@ -59,10 +56,10 @@ public class TourGuideService {
 
 		// crée des utilisateurs “internalUserX”
 		if (testMode) {
-			logger.info("TestMode enabled");
-			logger.debug("Initializing users");
+			log.info("TestMode enabled");
+			log.debug("Initializing users");
 			initializeInternalUsers();
-			logger.debug("Finished initializing users");
+			log.debug("Finished initializing users");
 		}
 		
 		// initialise et lance le scheduler 
@@ -171,7 +168,7 @@ public class TourGuideService {
 
 			internalUserMap.put(userName, user);
 		});
-		logger.debug("Created " + InternalTestHelper.getInternalUserNumber() + " internal test users.");
+		log.debug("Created " + InternalTestHelper.getInternalUserNumber() + " internal test users.");
 	}
 
 	// ajoute 3 positions aléatoires par utilisateur (latitude/longitude + date).

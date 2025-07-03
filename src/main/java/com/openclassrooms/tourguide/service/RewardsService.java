@@ -57,27 +57,21 @@ public class RewardsService {
 		
 		// pour chaque lieu que l'utilisateur a visité.
         log.debug("before for(VisitedLocation visitedLocation : userLocations),userLocations.size()="+userLocations.size());
-// !!! ICI HS !!!    
-        try {
-    		for(VisitedLocation visitedLocation : userLocations) {
-    	        log.debug("in visitedLocation="+visitedLocation);
-    		    // pour chaque attractions que l'on connait.
-    			for(Attraction attraction : attractions) {
-    			    // On vérifie que l'utilisateur n'a pas encore reçu de récompense pour cette attraction.
-    				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
-    				    // On vérifie si la position visitée est proche de l’attraction
-    					if(nearAttraction(visitedLocation, attraction)) {
-    					    // On calcule le nombre de points d'une récompense et on l’ajoute à la liste des récompenses de l’utilisateur.
-    						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
-    					}
-    				}
-    			}
-                log.debug("out visitedLocation="+visitedLocation);
-    		}
-        } catch (ConcurrentModificationException e) {
-            log.error("ConcurrentModificationException for user={}", user.getUserName(), e);
-            throw e;
-        }
+		for(VisitedLocation visitedLocation : userLocations) {
+	        log.debug("in visitedLocation="+visitedLocation);
+		    // pour chaque attractions que l'on connait.
+			for(Attraction attraction : attractions) {
+			    // On vérifie que l'utilisateur n'a pas encore reçu de récompense pour cette attraction.
+				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
+				    // On vérifie si la position visitée est proche de l’attraction
+					if(nearAttraction(visitedLocation, attraction)) {
+					    // On calcule le nombre de points d'une récompense et on l’ajoute à la liste des récompenses de l’utilisateur.
+						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+					}
+				}
+			}
+            log.debug("out visitedLocation="+visitedLocation);
+		}
         log.debug("......................FIN calculateRewards ......................");
 	}
 	
