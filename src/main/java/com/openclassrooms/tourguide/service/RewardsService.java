@@ -1,6 +1,5 @@
 package com.openclassrooms.tourguide.service;
 
-import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
