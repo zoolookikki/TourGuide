@@ -6,14 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.UUID;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import gpsUtil.GpsUtil;
-import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import rewardCentral.RewardCentral;
 
+import com.openclassrooms.tourguide.dto.NearByAttractionDTO;
 import com.openclassrooms.tourguide.model.user.User;
 import com.openclassrooms.tourguide.service.RewardsService;
 import com.openclassrooms.tourguide.service.TourGuideService;
@@ -151,12 +150,12 @@ public class TestTourGuideService {
 		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
 
 		// when
-		List<Attraction> attractions = tourGuideService.getNearByAttractions(visitedLocation);
+		List<NearByAttractionDTO> attractions = tourGuideService.getNearByAttractions(visitedLocation, user);
 
 		tourGuideService.tracker.stopTracking();
 
 		// then
-		assertEquals(5, attractions.size());
+		assertEquals(TourGuideService.MAX_NEARBY_ATTRACTIONS, attractions.size());
 	}
 
 	// ce test n'est pas appellé et ne fonctionne pas pour le moment.

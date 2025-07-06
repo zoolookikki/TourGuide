@@ -86,7 +86,7 @@ public class RewardsService {
 	
 	
 	// calcule le nombre de points d'une récompense d'une attraction associée à un utilisateur.
-	private int getRewardPoints(Attraction attraction, User user) {
+	public int getRewardPoints(Attraction attraction, User user) {
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
 	}
 	

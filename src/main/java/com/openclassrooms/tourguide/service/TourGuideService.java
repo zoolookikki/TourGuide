@@ -1,5 +1,6 @@
 package com.openclassrooms.tourguide.service;
 
+import com.openclassrooms.tourguide.dto.NearByAttractionDTO;
 import com.openclassrooms.tourguide.model.user.User;
 import com.openclassrooms.tourguide.model.user.UserReward;
 import com.openclassrooms.tourguide.tracker.Tracker;
@@ -8,6 +9,7 @@ import com.openclassrooms.tourguide.util.InternalTestHelper;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +34,9 @@ import tripPricer.TripPricer;
 @Service
 public class TourGuideService {
 	
+    // nombre maximum d'attractions proches à retourner.
+    public static final int MAX_NEARBY_ATTRACTIONS = 5;
+    
 	//  pour trouver la géolocalisation d'un utilisateur + la liste des attractions touristiques associées.
 	private final GpsUtil gpsUtil;
 	
@@ -124,7 +129,8 @@ public class TourGuideService {
 		return visitedLocation;
 	}
 
-	// retourne la liste des attractions les plus proches.
+	// retourne la liste des attractions les plus proches (limité à MAX_NEARBY_ATTRACTIONS).
+/*
 	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
 		List<Attraction> nearbyAttractions = new ArrayList<>();
 		// pour toutes les attractions connues, on met dans la liste celles les plus proches.
@@ -136,7 +142,41 @@ public class TourGuideService {
 
 		return nearbyAttractions;
 	}
+*/
+    public List<NearByAttractionDTO> getNearByAttractions(VisitedLocation visitedLocation, User user) {
+        List<NearByAttractionDTO> dtos = new ArrayList<>();
 
+        // construction de la liste de NearByAttractionDTO.
+        for (Attraction attraction : gpsUtil.getAttractions()) {
+            NearByAttractionDTO dto = new NearByAttractionDTO(
+                    attraction.attractionName,
+                    attraction.latitude, attraction.longitude,
+                    visitedLocation.location.latitude, visitedLocation.location.longitude,
+                    // idem RewardsService.nearAttraction
+                    rewardsService.getDistance(attraction, visitedLocation.location),
+                    rewardsService.getRewardPoints(attraction, user));
+            dtos.add(dto);
+        }
+        
+        /*
+        Trier la liste des dtos, de la plus petite distance à la plus grande, en comparant les distances vers l’attraction. 
+        sources : 
+            https://medium.com/@AlexanderObregon/javas-comparator-comparing-method-explained-342361288af6
+            https://docs.oracle.com/javase/10/docs/api/java/util/Comparator.html#comparingDouble(java.util.function.ToDoubleFunction)
+        */
+        dtos.sort(Comparator.comparingDouble(NearByAttractionDTO::getDistanceToAttraction));
+        
+        /*
+        Filtrage : on ne garde que les MAX_NEARBY_ATTRACTIONS premières attractions.
+        source :
+            https://codegym.cc/fr/groups/posts/fr.416.methode-sublist-en-java-arraylist-et-list
+        */
+        // Attention car la taille de la liste peut être inférieure à MAX_NEARBY_ATTRACTIONS => IndexOutOfBoundExecption.
+        int maxIndex = Math.min(MAX_NEARBY_ATTRACTIONS, dtos.size());
+        return dtos.subList(0, maxIndex);
+    }
+
+    
 	// permet au scheduler de s'arrêter correctement.
 	private void addShutDownHook() {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
