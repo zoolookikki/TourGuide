@@ -108,9 +108,11 @@ public class TourGuideService {
 	    // calcule le total de points de récompense.
 		int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(i -> i.getRewardPoints()).sum();
 		// récupère les offres.
+        log.debug("getTripDeals/tripPricer.getPrice,user.getUserId()="+user.getUserId()+",user.getUserPreferences().getNumberOfAdults()="+user.getUserPreferences().getNumberOfAdults()+",user.getUserPreferences().getNumberOfChildren()="+user.getUserPreferences().getNumberOfChildren()+",user.getUserPreferences().getTripDuration()="+user.getUserPreferences().getTripDuration()+",cumulatativeRewardPoints="+cumulatativeRewardPoints);
 		List<Provider> providers = tripPricer.getPrice(tripPricerApiKey, user.getUserId(),
 				user.getUserPreferences().getNumberOfAdults(), user.getUserPreferences().getNumberOfChildren(),
 				user.getUserPreferences().getTripDuration(), cumulatativeRewardPoints);
+		log.debug("getTripDeals/providers="+providers);
 		// stocke ces offres dans l’objet User.
 		user.setTripDeals(providers);
 		return providers;

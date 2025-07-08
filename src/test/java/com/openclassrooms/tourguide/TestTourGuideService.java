@@ -22,6 +22,8 @@ import tripPricer.Provider;
 
 public class TestTourGuideService {
 
+    public static final int MAX_TRIP_DEALS = 5;
+    
     /*
      * vérifie que la méthode trackUserLocation (qui localise l’utilisateur, met à jour son historique et calcule ses récompenses) retourne bien la position correspondant à l'utilisateur concerné. 
      */
@@ -158,11 +160,10 @@ public class TestTourGuideService {
 		assertEquals(TourGuideService.MAX_NEARBY_ATTRACTIONS, attractions.size());
 	}
 
-	// ce test n'est pas appellé et ne fonctionne pas pour le moment.
 	/*
-	 * vérifie que le service getTripDeals retourne bien 10 offres pour un utilisateur donné.
+	 * vérifie que le service getTripDeals retourne le bon nombre d'offres pour un utilisateur donné.
 	 */
-//    @Test
+    @Test
 	public void getTripDeals() {
 	    // given
 		GpsUtil gpsUtil = new GpsUtil();
@@ -177,7 +178,7 @@ public class TestTourGuideService {
 		tourGuideService.tracker.stopTracking();
 
 		// then
-		assertEquals(10, providers.size());
+		assertEquals(MAX_TRIP_DEALS, providers.size());
 	}
 
 }
