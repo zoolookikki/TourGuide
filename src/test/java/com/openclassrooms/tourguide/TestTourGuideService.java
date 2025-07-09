@@ -1,6 +1,8 @@
 package com.openclassrooms.tourguide;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -25,10 +27,12 @@ public class TestTourGuideService {
     public static final int MAX_TRIP_DEALS = 5;
     
     /*
-     * vérifie que la méthode trackUserLocation (qui localise l’utilisateur, met à jour son historique et calcule ses récompenses) retourne bien la position correspondant à l'utilisateur concerné. 
+     * vérifie que la méthode getUserLocation, si il n'y a pas d'historique :
+     * comme il n'y a pas de localisation déjà enregistrée, qu'elle doit appeller la méthode trackUserLocation afin de localiser l'utilisateur, mettre à jour l'historique  (+ calcul des récompenses) 
+     * et retourner la dernière localisation connue de l'utilisateur.
      */
 	@Test
-	public void getUserLocation() {
+	public void getUserLocationWithNoHistory() {
 	    // given
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
@@ -37,14 +41,46 @@ public class TestTourGuideService {
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 		
 		// when
-		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
+		VisitedLocation visitedLocation = tourGuideService.getUserLocation(user);
 		tourGuideService.tracker.stopTracking();
 		
 		// then
-		assertTrue(visitedLocation.userId.equals(user.getUserId()));
+		assertNotNull(visitedLocation);
+		// il ne doit y avoir dans l'historique qu'une seule position gps enregistrée.
+		assertEquals(1, user.getVisitedLocations().size());
+		// la localisation retournée doit être la dernière de l'historique. 
+		assertSame(visitedLocation, user.getLastVisitedLocation());
 	}
 
-	/*
+    /*
+     * vérifie que la méthode getUserLocation, si il y a un historique :
+     * retourne la dernière localisation connue de l'utilisateur sans avoir appeler la méthode trackUserLocation.
+     */
+    @Test
+    public void getUserLocationWithHistory() {
+        // given
+        GpsUtil gpsUtil = new GpsUtil();
+        RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
+        InternalTestHelper.setInternalUserNumber(0);
+        TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
+        User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+        // ajout dans l'historique 2 localisations : la dernière est la bonne.
+        tourGuideService.trackUserLocation(user);
+        VisitedLocation visitedLocationOK = tourGuideService.trackUserLocation(user);
+        
+        // when
+        VisitedLocation visitedLocation = tourGuideService.getUserLocation(user);
+        tourGuideService.tracker.stopTracking();
+        
+        // then
+        assertNotNull(visitedLocation);
+        // il ne doit pas y avoir dans l'historique de nouvelles localisations. 
+        assertEquals(2, user.getVisitedLocations().size());
+        // la localisation retournée doit être la dernière (soit la seconde qui a été crée).
+        assertSame(visitedLocation, visitedLocationOK);        
+    }
+
+    /*
 	 * vérifie qu'un utilisateur a bien été créé et donc que l'on peut le retrouver par son nom.
 	 */
 	@Test
@@ -100,25 +136,10 @@ public class TestTourGuideService {
 	}
 
 	/*
-	 *  idem getUserLocation ???
+	 * vérifie que l'appel direct à trackUserLocation fonctionne (test minimum car une partie est déjà testée avec getUserLocation) :
+	 * une localisation a été générée
+	 * qu'elle retourne une localisation qui correspond à l'utilisateur concernée (ce qui était écrit à l'origine).
 	 */
-    /*
-    public void getUserLocation() {
-        // given
-        GpsUtil gpsUtil = new GpsUtil();
-        RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
-        InternalTestHelper.setInternalUserNumber(0);
-        TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
-        User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-        
-        // when
-        VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
-        tourGuideService.tracker.stopTracking();
-        
-        // then
-        assertTrue(visitedLocation.userId.equals(user.getUserId()));
-    }
-    */
 	@Test
 	public void trackUser() {
 	    // given
@@ -134,6 +155,7 @@ public class TestTourGuideService {
 		tourGuideService.tracker.stopTracking();
 
 		// then
+        assertNotNull(visitedLocation);
 		assertEquals(user.getUserId(), visitedLocation.userId);
 	}
     
