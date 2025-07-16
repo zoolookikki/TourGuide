@@ -167,7 +167,8 @@ public class TourGuideService {
             }, executor));
         }
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();        
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();  
+        executor.shutdown();
     }
     
     // retourne la liste des attractions les plus proches (limité à MAX_NEARBY_ATTRACTIONS).
