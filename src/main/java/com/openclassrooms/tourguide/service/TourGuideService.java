@@ -17,6 +17,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -29,6 +32,8 @@ import gpsUtil.location.VisitedLocation;
 import lombok.extern.log4j.Log4j2;
 import tripPricer.Provider;
 import tripPricer.TripPricer;
+
+import org.apache.commons.lang3.time.StopWatch;
 
 @Log4j2
 @Service
@@ -124,21 +129,51 @@ public class TourGuideService {
 
     // met à jour la position GPS courante de l’utilisateur, l’ajoute à son historique, déclenche le calcul de ses récompenses, et retourne la nouvelle position gps de l'utilisateur.
     public VisitedLocation trackUserLocation(User user) {
+        StopWatch stopWatch = new StopWatch();
+        
         log.debug("......................DEBUT trackUserLocation ......................" + user.getUserName());
+
+        stopWatch.start();
         // appelle gpsUtil pour obtenir la position courante
         VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
+        stopWatch.stop();
+        log.debug("getUserLocation : " + stopWatch.getTime() + " ms");
+        
+        stopWatch.reset();
+        stopWatch.start();
         // ajoute cette position dans l’historique de l’utilisateur.
         user.addToVisitedLocations(visitedLocation);
+        stopWatch.stop();
+        log.debug("addToVisitedLocations : " + stopWatch.getTime() + " ms");
+        
+        stopWatch.reset();
+        stopWatch.start();
         // calcule les récompenses.
         rewardsService.calculateRewards(user);
+        stopWatch.stop();
+        log.debug("calculateRewards : " + stopWatch.getTime() + " ms");
+        
         log.debug("......................FIN trackUserLocation ......................" + user.getUserName());
         return visitedLocation;
     }
+    
+    public void trackUserLocationByUsers(List<User> users) {
+        ExecutorService executor = Executors.newFixedThreadPool(1000);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
 
+        for (User user : users) {
+            futures.add(CompletableFuture.runAsync(() -> {
+                trackUserLocation(user);
+            }, executor));
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();        
+    }
+    
     // retourne la liste des attractions les plus proches (limité à MAX_NEARBY_ATTRACTIONS).
     public List<NearByAttractionDTO> getNearByAttractions(VisitedLocation visitedLocation, User user) {
         List<NearByAttractionDTO> dtos = new ArrayList<>();
-
+        
         // construction de la liste de NearByAttractionDTO.
         for (Attraction attraction : gpsUtil.getAttractions()) {
             NearByAttractionDTO dto = new NearByAttractionDTO(attraction.attractionName, attraction.latitude,
@@ -149,19 +184,16 @@ public class TourGuideService {
             dtos.add(dto);
         }
 
-        /*
-         * Trier la liste des dtos, de la plus petite distance à la plus grande, en comparant les distances vers l’attraction. 
-         * sources :
-         * https://medium.com/@AlexanderObregon/javas-comparator-comparing-method-explained-342361288af6
-         * https://docs.oracle.com/javase/10/docs/api/java/util/Comparator.html#comparingDouble(java.util.function.ToDoubleFunction)
-         */
+        // Trier la liste des dtos, de la plus petite distance à la plus grande, en comparant les distances vers l’attraction. 
+        // sources :
+        // https://medium.com/@AlexanderObregon/javas-comparator-comparing-method-explained-342361288af6
+        // https://docs.oracle.com/javase/10/docs/api/java/util/Comparator.html#comparingDouble(java.util.function.ToDoubleFunction)
         dtos.sort(Comparator.comparingDouble(NearByAttractionDTO::getDistanceToAttraction));
 
-        /*
-         * Filtrage : on ne garde que les MAX_NEARBY_ATTRACTIONS premières attractions.
-         * source :
-         * https://codegym.cc/fr/groups/posts/fr.416.methode-sublist-en-java-arraylist-et-list
-         */
+        // Filtrage : on ne garde que les MAX_NEARBY_ATTRACTIONS premières attractions.
+        // source :
+        // https://codegym.cc/fr/groups/posts/fr.416.methode-sublist-en-java-arraylist-et-list
+        //
         // Attention car la taille de la liste peut être inférieure à MAX_NEARBY_ATTRACTIONS => IndexOutOfBoundExecption.
         int maxIndex = Math.min(MAX_NEARBY_ATTRACTIONS, dtos.size());
         return dtos.subList(0, maxIndex);

@@ -49,16 +49,18 @@ public class Tracker extends Thread {
             }
 
             List<User> users = tourGuideService.getAllUsers();
-            log.debug("Begin Tracker. Tracking " + users.size() + " users.");
+            log.info("Begin Tracker. Tracking " + users.size() + " users.");
             log.debug("......................DEBUT SCHEDULER......................");
             stopWatch.start();
             /*
              * pour chaque utilisateur : met à jour la position GPS courante de l’utilisateur, l’ajoute à son historique, déclenche le calcul de ses récompenses, 
-             * et retourne la nouvelle position gps de l'utilisateur.
+             * 
              */
-            users.forEach(u -> tourGuideService.trackUserLocation(u));
+            // appel de la méthode optimisée.
+            tourGuideService.trackUserLocationByUsers(users);
+            
             stopWatch.stop();
-            log.debug("Tracker Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
+            log.info("Tracker Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
             stopWatch.reset();
             log.debug("......................FIN SCHEDULER......................");
             try {
