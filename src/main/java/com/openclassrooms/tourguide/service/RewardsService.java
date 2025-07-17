@@ -107,9 +107,13 @@ public class RewardsService {
         
 //        ExecutorService executor = Executors.newFixedThreadPool(32); // 162 s pour 10.000 =>  toujous hs pour 100.000 => 27mn
 //        ExecutorService executor = Executors.newFixedThreadPool(100); // 51 s pour 10.000 ==> OK
-        ExecutorService manyUersexecutor = Executors.newFixedThreadPool(1000); // 10 s pour 10.000 ==> 100.000 = 100 s => - de 2 mn !!!
+        ExecutorService manyUsersExecutor = Executors.newFixedThreadPool(1000); // 10 s pour 10.000 ==> 100.000 = 100 s => - de 2 mn !!!
 //        ExecutorService executor = Executors.newFixedThreadPool(10000); // + ne change rien
 
+        // test en java 21 : Virtual Thread => pas besoin de régler la taille du pool en faisant des essais (et moins consommateur de ressources).
+        // ExecutorService manyUsersExecutor = Executors.newVirtualThreadPerTaskExecutor();
+
+        
         // liste pour suivre les tâches.
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
@@ -117,7 +121,7 @@ public class RewardsService {
             // création d'une tâche asynchrone pour un utilisateur
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 calculateRewards(user);
-            }, manyUersexecutor);
+            }, manyUsersExecutor);
             // ajoute le CompletableFuture à la liste pour pouvoir ensuite synchroniser tout à la fin.
             futures.add(future);
         }
@@ -126,9 +130,10 @@ public class RewardsService {
         CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
         // bloque jusqu’à ce que toutes les tâches soient terminées.
         combinedFuture.join();
-        manyUersexecutor.shutdown();
+        // test en java 21 : Le VirtualThreadExecutor n’a pas besoin d’être fermé.
+        manyUsersExecutor.shutdown();
      }
-
+    
     // vérifie si le lieu visité et l'attraction est à proximité (rayon en miles petit).
     private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
         return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
