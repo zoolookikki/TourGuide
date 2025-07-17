@@ -172,34 +172,57 @@ public class TourGuideService {
     }
     
     // retourne la liste des attractions les plus proches (limité à MAX_NEARBY_ATTRACTIONS).
+    // optimisation CompletableFuture car appel à getRewarPoints pénalisant (vu lors du test getNearbyAttractions qui était trop lent)
     public List<NearByAttractionDTO> getNearByAttractions(VisitedLocation visitedLocation, User user) {
-        List<NearByAttractionDTO> dtos = new ArrayList<>();
+        // Liste de tâches asynchrones
+        List<CompletableFuture<NearByAttractionDTO>> futures = new ArrayList<>();
+        // pas besoin de plus de threads pour ce traitement.
+        ExecutorService executor = Executors.newFixedThreadPool(100);
         
-        // construction de la liste de NearByAttractionDTO.
+        // construction de la liste de NearByAttractionDTO (1 ère partie).
         for (Attraction attraction : gpsUtil.getAttractions()) {
-            NearByAttractionDTO dto = new NearByAttractionDTO(attraction.attractionName, attraction.latitude,
-                    attraction.longitude, visitedLocation.location.latitude, visitedLocation.location.longitude,
-                    // idem RewardsService.nearAttraction
-                    rewardsService.getDistance(attraction, visitedLocation.location),
-                    rewardsService.getRewardPoints(attraction, user));
-            dtos.add(dto);
+            // Lancement d’une tâche asynchrone pour chaque attraction ==> c'est getRewardPoints qui prend du temps. 
+            CompletableFuture<NearByAttractionDTO> future = CompletableFuture.supplyAsync(() -> {
+                return new NearByAttractionDTO(
+                        attraction.attractionName,
+                        attraction.latitude,
+                        attraction.longitude,
+                        visitedLocation.location.latitude,
+                        visitedLocation.location.longitude,
+                        // idem RewardsService.nearAttraction
+                        rewardsService.getDistance(attraction, visitedLocation.location),
+                        rewardsService.getRewardPoints(attraction, user)
+                );
+            }, executor);
+            futures.add(future);
         }
 
-        // Trier la liste des dtos, de la plus petite distance à la plus grande, en comparant les distances vers l’attraction. 
-        // sources :
-        // https://medium.com/@AlexanderObregon/javas-comparator-comparing-method-explained-342361288af6
-        // https://docs.oracle.com/javase/10/docs/api/java/util/Comparator.html#comparingDouble(java.util.function.ToDoubleFunction)
+        // Attente des résultats ==> construction de la liste de NearByAttractionDTO (2 ème partie).
+        List<NearByAttractionDTO> dtos = new ArrayList<>();
+        for (CompletableFuture<NearByAttractionDTO> future : futures) {
+            dtos.add(future.join());
+        }
+        
+        executor.shutdown();
+        
+        /*
+         * Trier la liste des dtos, de la plus petite distance à la plus grande, en comparant les distances vers l’attraction. 
+         * sources :
+         * https://medium.com/@AlexanderObregon/javas-comparator-comparing-method-explained-342361288af6
+         * https://docs.oracle.com/javase/10/docs/api/java/util/Comparator.html#comparingDouble(java.util.function.ToDoubleFunction)
+         */
         dtos.sort(Comparator.comparingDouble(NearByAttractionDTO::getDistanceToAttraction));
 
-        // Filtrage : on ne garde que les MAX_NEARBY_ATTRACTIONS premières attractions.
-        // source :
-        // https://codegym.cc/fr/groups/posts/fr.416.methode-sublist-en-java-arraylist-et-list
-        //
+        /*
+         * Filtrage : on ne garde que les MAX_NEARBY_ATTRACTIONS premières attractions.
+         * source :
+         * https://codegym.cc/fr/groups/posts/fr.416.methode-sublist-en-java-arraylist-et-list
+         */
         // Attention car la taille de la liste peut être inférieure à MAX_NEARBY_ATTRACTIONS => IndexOutOfBoundExecption.
         int maxIndex = Math.min(MAX_NEARBY_ATTRACTIONS, dtos.size());
         return dtos.subList(0, maxIndex);
     }
-
+    
     // permet au scheduler de s'arrêter correctement.
     private void addShutDownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread() {

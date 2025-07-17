@@ -51,6 +51,7 @@ public class RewardsService {
     }
     
     // calcule et attribue des récompenses à un utilisateur en fonction des lieux visités et de la proximité des attractions.
+    // optimisation uniquement si appel d'un utilisateur car appel à getRewardPoints pénalisant (vu lors du test nearAllAttractions qui était trop lent).
     public void calculateRewards(User user) {
         // récupère l'historique des lieux visités par l'utilisateur.
         List<VisitedLocation> userLocations = user.getVisitedLocations();
@@ -58,7 +59,12 @@ public class RewardsService {
         List<Attraction> attractions = gpsUtil.getAttractions();
 
         log.info("User: " + user.getUserName() + ", locations: " + userLocations.size() + ", attractions: " + attractions.size());
-        
+
+        // pas besoin de plus de threads pour ce traitement.
+        ExecutorService singleUserExecutor = Executors.newFixedThreadPool(100); 
+
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
         // pour chaque lieu que l'utilisateur a visité.
         for (VisitedLocation visitedLocation : userLocations) {
             // pour chaque attractions que l'on connait.
@@ -68,13 +74,24 @@ public class RewardsService {
                         .filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
                     // On vérifie si la position visitée est proche de l’attraction
                     if (nearAttraction(visitedLocation, attraction)) {
-                        // On calcule le nombre de points d'une récompense et on l’ajoute à la liste des récompenses de l’utilisateur.
-                        user.addUserReward(
-                                new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+                        // création d'une tâche asynchrone pour optimiser l'appel à getRewardPoints.
+                        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                            // On calcule le nombre de points d'une récompense et on l’ajoute à la liste des récompenses de l’utilisateur.
+                            user.addUserReward(
+                                    new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+                        }, singleUserExecutor);
+                        // ajoute le CompletableFuture à la liste pour pouvoir ensuite synchroniser tout à la fin.
+                        futures.add(future);
                     }
                 }
             }
         }
+        
+        // crée un nouveau CompletableFuture combiné qui représente l'ensemble des tâches.
+        CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        // bloque jusqu’à ce que toutes les tâches soient terminées.
+        combinedFuture.join();
+        singleUserExecutor.shutdown();
     }
     
     public void calculateRewardsByUsers(List<User> users) {

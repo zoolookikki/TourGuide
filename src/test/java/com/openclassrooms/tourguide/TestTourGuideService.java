@@ -46,7 +46,7 @@ public class TestTourGuideService {
 
         // then
         assertNotNull(visitedLocation);
-        // il ne doit y avoir dans l'historique qu'une seule position gps enregistrée.
+        // il ne doit y avoir dans l'historique qu'une seule localisation enregistrée.
         assertEquals(1, user.getVisitedLocations().size());
         // la localisation retournée doit être la dernière de l'historique.
         assertSame(visitedLocation, user.getLastVisitedLocation());
