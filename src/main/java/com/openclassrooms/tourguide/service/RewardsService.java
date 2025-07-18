@@ -58,7 +58,7 @@ public class RewardsService {
         // récupère la liste des attractions.
         List<Attraction> attractions = gpsUtil.getAttractions();
 
-        log.info("User: " + user.getUserName() + ", locations: " + userLocations.size() + ", attractions: " + attractions.size());
+ //       log.info("User: " + user.getUserName() + ", locations: " + userLocations.size() + ", attractions: " + attractions.size());
 
         // pas besoin de plus de threads pour ce traitement.
         ExecutorService singleUserExecutor = Executors.newFixedThreadPool(100); 
