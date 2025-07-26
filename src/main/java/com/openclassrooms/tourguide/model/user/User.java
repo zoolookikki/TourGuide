@@ -11,6 +11,15 @@ import lombok.extern.log4j.Log4j2;
 import tripPricer.Provider;
 
 @Log4j2
+/*
+ Utilise la classe suivante de TripPricer :
+ 
+ public class Provider {
+    public final String name;
+    public final double price;
+    public final UUID tripId;
+ }
+ */
 public class User {
     // identifiants de l’utilisateur. Immuables (final), définis à la création.
     private final UUID userId;

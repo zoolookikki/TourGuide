@@ -20,14 +20,14 @@ import tripPricer.Provider;
 public class TourGuideController {
 
     @Autowired
-    TourGuideService tourGuideService;
+    private TourGuideService tourGuideService;
 
     @RequestMapping("/")
     public String index() {
         return "Greetings from TourGuide!";
     }
 
-    // Retourne la dernière position géographique visitée par cet utilisateur.
+    // Retourne la dernière position connue par cet utilisateur.
     @RequestMapping("/getLocation")
     public VisitedLocation getLocation(@RequestParam String userName) {
         return tourGuideService.getUserLocation(getUser(userName));

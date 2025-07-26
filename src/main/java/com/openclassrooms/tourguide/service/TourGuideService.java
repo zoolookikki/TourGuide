@@ -61,6 +61,9 @@ public class TourGuideService {
         this.gpsUtil = gpsUtil;
         this.rewardsService = rewardsService;
 
+        // pour tester l'endpoint getRewards sinon vide.
+        //rewardsService.setProximityBuffer(Integer.MAX_VALUE);
+        
         // Locale.US comme locale par défaut afin d’uniformiser les conversions nombre/chaîne (coordonnées GPS, distances)
         Locale.setDefault(Locale.US);
 
