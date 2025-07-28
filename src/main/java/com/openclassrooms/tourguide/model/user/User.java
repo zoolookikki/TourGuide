@@ -10,7 +10,6 @@ import gpsUtil.location.VisitedLocation;
 import lombok.extern.log4j.Log4j2;
 import tripPricer.Provider;
 
-@Log4j2
 /**
  * Represents a user of the TourGuide application.
  * 
@@ -18,6 +17,7 @@ import tripPricer.Provider;
  * rewards, travel preferences, and personalized offers.</p>
  *   
  */
+@Log4j2
 public class User {
     // identifiants de l’utilisateur. Immuables (final), définis à la création.
     private final UUID userId;

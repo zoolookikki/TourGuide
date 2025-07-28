@@ -12,10 +12,10 @@ import com.openclassrooms.tourguide.service.TourGuideService;
 
 import lombok.extern.log4j.Log4j2;
 
-@Log4j2
 /**
  * Thread that every 5 minutes (scheduler), for all registered users, updates their GPS position and recalculates their rewards.
  */
+@Log4j2
 public class Tracker extends Thread {
     private static final long trackingPollingInterval = TimeUnit.MINUTES.toSeconds(5);
 

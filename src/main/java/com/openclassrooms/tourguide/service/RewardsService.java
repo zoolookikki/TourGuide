@@ -18,13 +18,13 @@ import rewardCentral.RewardCentral;
 import com.openclassrooms.tourguide.model.user.User;
 import com.openclassrooms.tourguide.model.user.UserReward;
 
-@Log4j2
 /**
  * Service that allows the calculation of rewards based on the places visited and the evaluation of the distance between a user and an attraction.
  * <p>
  * It uses external libraries GpsUtil for geolocation and RewardCentral for calculating reward points.
  * <p>
  */
+@Log4j2
 @Service
 public class RewardsService {
     private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;

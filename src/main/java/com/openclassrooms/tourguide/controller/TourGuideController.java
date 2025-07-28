@@ -16,7 +16,7 @@ import com.openclassrooms.tourguide.service.TourGuideService;
 
 import tripPricer.Provider;
 
-/*
+/**
  * Main REST controller of the TourGuide application.
  */
 @RestController

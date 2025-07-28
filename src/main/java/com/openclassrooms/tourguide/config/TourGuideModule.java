@@ -7,7 +7,7 @@ import gpsUtil.GpsUtil;
 import rewardCentral.RewardCentral;
 import com.openclassrooms.tourguide.service.RewardsService;
 
-/*
+/**
  * Spring configuration of the TourGuide application.
  */
 @Configuration
