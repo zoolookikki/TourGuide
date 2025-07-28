@@ -11,14 +11,12 @@ import lombok.extern.log4j.Log4j2;
 import tripPricer.Provider;
 
 @Log4j2
-/*
- Utilise la classe suivante de TripPricer :
- 
- public class Provider {
-    public final String name;
-    public final double price;
-    public final UUID tripId;
- }
+/**
+ * Represents a user of the TourGuide application.
+ * 
+ * <p>Contains the user's personal information, location history,
+ * rewards, travel preferences, and personalized offers.</p>
+ *   
  */
 public class User {
     // identifiants de l’utilisateur. Immuables (final), définis à la création.
@@ -47,7 +45,15 @@ public class User {
 
     // préférences de voyage (nb de personnes, durée du séjour, etc.).
     private UserPreferences userPreferences = new UserPreferences();
-    // offres de voyages proposées à l’utilisateur.
+    /*
+    Offres de voyages proposées à l’utilisateur.
+    Utilise la classe suivante de TripPricer :
+        public class Provider {
+           public final String name;
+           public final double price;
+           public final UUID tripId;
+        }
+    */
     private List<Provider> tripDeals = new ArrayList<>();
 
     public User(UUID userId, String userName, String phoneNumber, String emailAddress) {
@@ -89,24 +95,39 @@ public class User {
         return latestLocationTimestamp;
     }
 
-    // ajoute une localisation à l’historique de l’utilisateur.
+    /**
+     * Adds a location to the user's history.
+     *
+     * @param visitedLocation the new location visited.
+     */
     public void addToVisitedLocations(VisitedLocation visitedLocation) {
         log.debug("before visitedLocations.add(visitedLocation)");
         visitedLocations.add(visitedLocation);
         log.debug("after visitedLocations.add(visitedLocation)");
     }
 
+    /**
+     * Returns the list of visited locations.
+     *
+     * @return the list.
+     */
     public List<VisitedLocation> getVisitedLocations() {
         return visitedLocations;
     }
 
-    // vide l’historique.
+    /**
+     * Clears location history.
+     */
     public void clearVisitedLocations() {
         visitedLocations.clear();
     }
-
-    // ajoute une récompense seulement si elle n’existe pas déjà pour la même
-    // attraction.
+    
+    
+    /**
+     * Add a reward only if it does not already exist for the same attraction.
+     *
+     * @param userReward the reward to add.
+     */
     public void addUserReward(UserReward userReward) {
         /*
          * if(userRewards.stream().filter(r -> !r.attraction.attractionName.equals(userReward.attraction)).count() == 0) {userRewards.add(userReward); } 
@@ -132,10 +153,16 @@ public class User {
         }
     }
 
+    /**
+     * Returns the user's list of rewards.
+     *
+     * @return the list.
+     */
     public List<UserReward> getUserRewards() {
         return userRewards;
     }
 
+    
     public UserPreferences getUserPreferences() {
         return userPreferences;
     }
@@ -144,6 +171,11 @@ public class User {
         this.userPreferences = userPreferences;
     }
 
+    /**
+     * Retrieves the user's last known location.
+     *
+     * @return the last one.
+     */
     public VisitedLocation getLastVisitedLocation() {
         return visitedLocations.get(visitedLocations.size() - 1);
     }

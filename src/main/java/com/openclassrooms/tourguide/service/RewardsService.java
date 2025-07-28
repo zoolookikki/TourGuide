@@ -19,7 +19,12 @@ import com.openclassrooms.tourguide.model.user.User;
 import com.openclassrooms.tourguide.model.user.UserReward;
 
 @Log4j2
-// service permettant le calcul des récompenses en fonction des lieux visités et l'évaluation de la distance entre un utilisateur et une attraction.
+/**
+ * Service that allows the calculation of rewards based on the places visited and the evaluation of the distance between a user and an attraction.
+ * <p>
+ * It uses external libraries GpsUtil for geolocation and RewardCentral for calculating reward points.
+ * <p>
+ */
 @Service
 public class RewardsService {
     private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
@@ -49,8 +54,13 @@ public class RewardsService {
     public void setDefaultProximityBuffer() {
         proximityBuffer = defaultProximityBuffer;
     }
-    
-    // calcule et attribue des récompenses à un utilisateur en fonction des lieux visités et de la proximité des attractions.
+
+    /**
+     * Calculates and awards rewards to a user based on places visited and proximity to attractions.
+     * Uses threads to parallelize calls to getRewardPoints().
+     *
+     * @param user the user for whom to calculate rewards.
+     */    
     // optimisation uniquement si appel d'un utilisateur car appel à getRewardPoints pénalisant (vu lors du test nearAllAttractions qui était trop lent).
     public void calculateRewards(User user) {
         // récupère l'historique des lieux visités par l'utilisateur.
@@ -93,7 +103,13 @@ public class RewardsService {
         combinedFuture.join();
         singleUserExecutor.shutdown();
     }
-    
+
+    /**
+     * Calculates rewards for a list of users.
+     * Each user is processed in an independent thread for efficient parallelization.
+     *
+     * @param users the list of users
+     */
     public void calculateRewardsByUsers(List<User> users) {
 
         /*
@@ -134,22 +150,50 @@ public class RewardsService {
         manyUsersExecutor.shutdown();
      }
     
-    // vérifie si le lieu visité et l'attraction est à proximité (rayon en miles petit).
+
+    /**
+     * Check if the visited place and attraction are nearby (small radius in miles).
+     *
+     * @param visitedLocation the location visited
+     * @param attraction      the tourist attraction
+     * @return true if the distance is less than the proximity buffer
+     */    
     private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
         return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
     }
 
-    // vérifie si l'attraction est proche de la localisation actuelle (rayon en miles + important que la précédente).
+    
+    /**
+     * Checks if the attraction is close to the current location (radius in miles larger than the previous one).
+     *
+     * @param attraction the tourist attraction
+     * @param location   the reference position
+     * @return true if in the radius of interest
+     */
     public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
         return getDistance(attraction, location) > attractionProximityRange ? false : true;
     }
 
-    // calcule le nombre de points d'une récompense d'une attraction associée à un utilisateur.
+    /**
+     * Calculates the number of points in an attraction reward associated with a user.
+     *
+     * @param attraction the tourist attraction
+     * @param user the user for whom to get rewards points
+     * @return number of points awarded
+     */
+    // Calcule le nombre de points d'une récompense d'une attraction associée à un utilisateur.
     public int getRewardPoints(Attraction attraction, User user) {
         return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
     }
-
-    // calcule la distance en miles entre deux positions.
+    
+    
+    /**
+     * Calculates the distance in miles between two positions.
+     *
+     * @param loc1 first position
+     * @param loc2 second position
+     * @return distance in miles
+     */
     public double getDistance(Location loc1, Location loc2) {
         double lat1 = Math.toRadians(loc1.latitude);
         double lon1 = Math.toRadians(loc1.longitude);

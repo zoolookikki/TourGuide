@@ -1,6 +1,8 @@
 package com.openclassrooms.tourguide.model.user;
 
-// stocke les préférences de voyage d’un utilisateur, utilisées pour trouver les offres adaptées.
+/**
+ * Stores a user's travel preferences, used to find suitable offers.
+ */
 public class UserPreferences {
 
     /*

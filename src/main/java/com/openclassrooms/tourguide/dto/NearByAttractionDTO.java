@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 
 /**
- * For displaying in json.
+ * DTO representing an attraction close to the user (for the JSON response from one of the endpoints).
  * <p>
  * @Value better than @Data for DTOs because it generates all fields final, meaning they cannot be changed after initialization.
  * To avoid problems with modifying DTOs due to passing by reference in argument and function return.

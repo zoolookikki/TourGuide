@@ -13,7 +13,9 @@ import com.openclassrooms.tourguide.service.TourGuideService;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-// thread qui toutes les 5 minutes (scheduler), pour tous les utilisateurs enregistrés, met à jour de leur position GPS  et effectue le recalcul de leurs récompenses.
+/**
+ * Thread that every 5 minutes (scheduler), for all registered users, updates their GPS position and recalculates their rewards.
+ */
 public class Tracker extends Thread {
     private static final long trackingPollingInterval = TimeUnit.MINUTES.toSeconds(5);
 
@@ -22,6 +24,12 @@ public class Tracker extends Thread {
     private final TourGuideService tourGuideService;
     private boolean stop = false;
 
+    /**
+     * Constructs a Tracker bound to a TourGuideService instance.
+     * The thread is immediately started upon creation.
+     *
+     * @param tourGuideService the service used for tracking operations.
+     */
     public Tracker(TourGuideService tourGuideService) {
         this.tourGuideService = tourGuideService;
 
@@ -38,6 +46,12 @@ public class Tracker extends Thread {
         executorService.shutdownNow();
     }
 
+    /**
+     * Loops through user tracking operations: retrieving the user list, updating their GPS location, and recalculating associated rewards.
+     * <p>
+     * The thread stops when an interrupt is detected or stop is triggered.
+     * </p>
+     */
     @Override
     public void run() {
         // chronomètre.

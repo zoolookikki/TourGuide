@@ -35,6 +35,14 @@ import tripPricer.TripPricer;
 
 import org.apache.commons.lang3.time.StopWatch;
 
+/**
+ * The main service of the TourGuide application, responsible for managing users, their geolocation, calculating rewards and recommending attractions or travel offers.
+ *
+ * <p>It centralizes access to functionality by orchestrating calls to simulated external libraries: GpsUtil, TripPricer, and RewardCentral via the RewardsService service.</p>
+ *
+ * <p>It also initializes the Tracker, which periodically updates the position and rewards of all registered users.</p>
+ *
+ */
 @Log4j2
 @Service
 public class TourGuideService {
@@ -82,36 +90,65 @@ public class TourGuideService {
         addShutDownHook();
     }
 
-    // retourne la liste des récompenses de l’utilisateur.
+    /**
+     * Returns the list of rewards earned by a user.
+     *
+     * @param user the user concerned.
+     * @return list of UserRewards associated with the user.
+     */
     public List<UserReward> getUserRewards(User user) {
         return user.getUserRewards();
     }
 
-    // si l’utilisateur a déjà des positions, on renvoie la dernière sinon on en demande une.
+    /**
+     * If the user already has positions, we return the last one, otherwise we request one.
+     *
+     * @param user the user whose position we want.
+     * @return the most recently visited position.
+     */
     public VisitedLocation getUserLocation(User user) {
         VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ? user.getLastVisitedLocation()
                 : trackUserLocation(user);
         return visitedLocation;
     }
 
-    // récupère un utilisateur correspondant à son nom.
+    /**
+     * Search for a user by name.
+     *
+     * @param userName 
+     * @return the corresponding User object or null if not found.
+     */
     public User getUser(String userName) {
         return internalUserMap.get(userName);
     }
 
-    // retourne la liste de tous les utilisateurs
+    /**
+     * Returns the list of all users.
+     *
+     * @return a list of User.
+     */    
     public List<User> getAllUsers() {
         return internalUserMap.values().stream().collect(Collectors.toList());
     }
 
-    // ajoute un nouvel utilisateur si il n'existe pas.
+    /**
+     * Adds a user if it does not exist.
+     *
+     * @param user the user to add.
+     */
+    
     public void addUser(User user) {
         if (!internalUserMap.containsKey(user.getUserName())) {
             internalUserMap.put(user.getUserName(), user);
         }
     }
-
-    // retourne les offres disponibles pour un utilisateur.
+    
+    /**
+     * Returns the offers available for a user.
+     *
+     * @param user the user for whom we are looking offers.
+     * @return list of suppliers.
+     */
     public List<Provider> getTripDeals(User user) {
         // calcule le total de points de récompense.
         int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(i -> i.getRewardPoints()).sum();
@@ -130,7 +167,12 @@ public class TourGuideService {
         return providers;
     }
 
-    // met à jour la position GPS courante de l’utilisateur, l’ajoute à son historique, déclenche le calcul de ses récompenses, et retourne la nouvelle position gps de l'utilisateur.
+    /**
+     * Updates the user's current GPS position, saves this position in the history, triggers the calculation of its rewards, and returns the user's new GPS position.
+     *
+     * @param user the user concerned.
+     * @return the new position visited.
+     */
     public VisitedLocation trackUserLocation(User user) {
         StopWatch stopWatch = new StopWatch();
         
@@ -160,6 +202,12 @@ public class TourGuideService {
         return visitedLocation;
     }
     
+    
+    /**
+     * Same as trackUserLocation method, for all users passed as parameters, using optimized parallel processing.
+     *
+     * @param users the list of users to be processed.
+     */
     public void trackUserLocationByUsers(List<User> users) {
         ExecutorService executor = Executors.newFixedThreadPool(1000);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -174,7 +222,13 @@ public class TourGuideService {
         executor.shutdown();
     }
     
-    // retourne la liste des attractions les plus proches (limité à MAX_NEARBY_ATTRACTIONS).
+    /**
+     * Returns the list of attractions closest to the user, sorted by distance, with associated distances and reward points.
+     *
+     * @param visitedLocation the user's current position.
+     * @param user            the user concerned.
+     * @return NearByAttractionDTO list limited to MAX_NEARBY_ATTRACTIONS.
+     */    
     // optimisation CompletableFuture car appel à getRewarPoints pénalisant (vu lors du test getNearbyAttractions qui était trop lent)
     public List<NearByAttractionDTO> getNearByAttractions(VisitedLocation visitedLocation, User user) {
         // Liste de tâches asynchrones
@@ -226,7 +280,9 @@ public class TourGuideService {
         return dtos.subList(0, maxIndex);
     }
     
-    // permet au scheduler de s'arrêter correctement.
+    /**
+     * Registers a shutdown hook with the JVM to ensure proper shutdown of the scheduler when the application closes.
+     */
     private void addShutDownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {

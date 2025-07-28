@@ -3,8 +3,10 @@ package com.openclassrooms.tourguide.model.user;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 
+/**
+ * Used to store information about the location visited, attraction and reward points awarded.
+ */
 /*
-Sert à stocker les informations sur le lieu visité, l'attraction et les points de récompense attribués.
 est utilisé dans la liste userRewards d’un User.
 Utilise les classes suivantes de gpsUtil :
 
