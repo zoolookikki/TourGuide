@@ -31,23 +31,8 @@ public class TestPerformance {
      * 
      * InternalTestHelper.setInternalUserNumber(100000);
      * 
-     * 
-     * These tests can be modified to suit new solutions, just as long as the
-     * performance metrics at the end of the tests remains consistent.
-     * 
-     * These are performance metrics that we are trying to hit:
-     * 
-     * highVolumeTrackLocation: 100,000 users within 15 minutes:
-     * assertTrue(TimeUnit.MINUTES.toSeconds(15) >=
-     * TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
-     *
-     * highVolumeGetRewards: 100,000 users within 20 minutes:
-     * assertTrue(TimeUnit.MINUTES.toSeconds(20) >=
-     * TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
      */
 
-    // disabled pour le moment pour test du pipeline d'intégration continue.
-    @Disabled
     // ce test mesure le temps nécessaire pour localiser 100 000 utilisateurs, enregistrer leur position, et calculer leurs récompenses,le tout devant être exécuté en moins de 15 minutes.
     @Test
     public void highVolumeTrackLocation() {
@@ -79,8 +64,6 @@ public class TestPerformance {
         assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
     }
 
-    // disabled pour le moment pour test du pipeline d'intégration continue.
-    @Disabled
     // ce test vérifie que le calcul de récompenses pour 100 000 utilisateurs se fait en moins de 20 minutes.
     @Test
     public void highVolumeGetRewards() {
