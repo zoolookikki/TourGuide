@@ -4,9 +4,9 @@ name: Java CI for TourGuide
 # Afin de garantir que tout nouveau code est validé, les tâches suivantes vont se déclencher à chaque push ou pull request sur les branches indiquées.
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "dev" ]
+    branches: [ "master" ]
   # Ajoute un bouton "Run workflow" dans GitHub pour lancer manuellement le pipeline
   workflow_dispatch:
     
