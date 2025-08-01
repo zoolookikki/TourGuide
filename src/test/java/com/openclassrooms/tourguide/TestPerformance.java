@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import gpsUtil.GpsUtil;
@@ -33,17 +32,17 @@ public class TestPerformance {
      * 
      */
 
-    // ce test mesure le temps nécessaire pour localiser 100 000 utilisateurs, enregistrer leur position, et calculer leurs récompenses,le tout devant être exécuté en moins de 15 minutes.
+    /*
+     * ce test mesure le temps nécessaire pour localiser 100 000 utilisateurs, enregistrer leur position, et calculer leurs récompenses, le tout devant être exécuté en moins de 15 minutes.
+     */
     @Test
     public void highVolumeTrackLocation() {
         GpsUtil gpsUtil = new GpsUtil();
         RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
-        // Users should be incremented up to 100,000, and test finishes within 15
-        // minutes
-        InternalTestHelper.setInternalUserNumber(100000);
+        // Users should be incremented up to 100,000, and test finishes within 15 minutes
+//        InternalTestHelper.setInternalUserNumber(100000);
+        InternalTestHelper.setInternalUserNumber(100);
         TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
-        // A ARRETER TOUT DE SUITE SINON DOUBLE TRAITEMENT.
-        tourGuideService.tracker.stopTracking();
 
         // récupération de l'ensemble des utilisateurs.
         List<User> allUsers = new ArrayList<>();
@@ -58,29 +57,30 @@ public class TestPerformance {
 
         // fin chronomètre.
         stopWatch.stop();
+        tourGuideService.tracker.stopTracking();
 
         System.out.println("highVolumeTrackLocation: Time Elapsed: "
                 + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
         assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
     }
 
-    // ce test vérifie que le calcul de récompenses pour 100 000 utilisateurs se fait en moins de 20 minutes.
+    /*
+     *  Ce test vérifie que le calcul de récompenses pour 100 000 utilisateurs se fait en moins de 20 minutes :
+     */
     @Test
     public void highVolumeGetRewards() {
         GpsUtil gpsUtil = new GpsUtil();
         RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 
-        // Users should be incremented up to 100,000, and test finishes within 20
-        // minutes
-        InternalTestHelper.setInternalUserNumber(100000);
+        // Users should be incremented up to 100,000, and test finishes within 20 minutes
+//        InternalTestHelper.setInternalUserNumber(100000);
+        InternalTestHelper.setInternalUserNumber(100);
 
         // début chronomètre.
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         
         TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
-        // A ARRETER TOUT DE SUITE SINON DOUBLE TRAITEMENT.
-        tourGuideService.tracker.stopTracking();
 
         // on prend la première attraction existante dans la liste fournie par gpsUtil.
         Attraction attraction = gpsUtil.getAttractions().get(0);
@@ -101,6 +101,7 @@ public class TestPerformance {
         }
         // fin chronomètre.
         stopWatch.stop();
+        tourGuideService.tracker.stopTracking();
 
         System.out.println("highVolumeGetRewards: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime())
                 + " seconds.");

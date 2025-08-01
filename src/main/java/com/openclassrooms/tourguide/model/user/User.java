@@ -134,23 +134,16 @@ public class User {
          * warning : Unlikely argument type for equals(): Attraction seems to be unrelated to String. 
          * ATTENTION car il y a ici 2 problèmes en fait : 
          * - comparaison entre un nom attractionName et un objet attraction. 
-         * - test difficile à comprendre et faux ? filter => ne garde que les récompenses dont les noms comparés sont différents => il faut faire le contraire.
+         * - test difficile lire.
          */
 
-        boolean alreadyExist = false;
-
-        // recherche si doublon.
+        // Vérifie si une récompense pour cette attraction existe déjà
         for (UserReward existingReward : userRewards) {
             if (existingReward.attraction.attractionName.equals(userReward.attraction.attractionName)) {
-                alreadyExist = true;
-                break;
+                return; // on ne l’ajoute pas car elle existe déjà.
             }
         }
-
-        // si pas de doublon, on l'ajoute.
-        if (!alreadyExist) {
-            userRewards.add(userReward);
-        }
+        userRewards.add(userReward); // on l’ajoute car on ne l'a pas trouvée.        
     }
 
     /**

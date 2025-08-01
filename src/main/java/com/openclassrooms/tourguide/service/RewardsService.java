@@ -67,12 +67,9 @@ public class RewardsService {
         List<VisitedLocation> userLocations = user.getVisitedLocations();
         // récupère la liste des attractions.
         List<Attraction> attractions = gpsUtil.getAttractions();
-
  //       log.info("User: " + user.getUserName() + ", locations: " + userLocations.size() + ", attractions: " + attractions.size());
-
         // pas besoin de plus de threads pour ce traitement.
-        ExecutorService singleUserExecutor = Executors.newFixedThreadPool(100); 
-
+        ExecutorService singleUserExecutor = Executors.newFixedThreadPool(100);        
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         // pour chaque lieu que l'utilisateur a visité.

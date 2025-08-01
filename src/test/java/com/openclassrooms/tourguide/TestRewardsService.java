@@ -87,8 +87,9 @@ public class TestRewardsService {
 
         // then
         // il y a autant d'attractions que de récompenses (cqfd).
+//        userRewards.forEach(r -> System.out.println(r.attraction.attractionName));
         assertEquals(gpsUtil.getAttractions().size(), userRewards.size());
         log.debug("......................FIN TEST HS nearAllAttractions......................");
     }
-
+    
 }
